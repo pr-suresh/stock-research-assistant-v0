@@ -1,0 +1,44 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+
+# Build artifacts (from pip install -e .)
+*.egg-info/
+*.egg
+dist/
+build/
+
+# Data files (don't commit downloaded filings)
+data/
+*.pdf
+*.htm
+*.html
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment variables
+.env
+
+# Vector databases
+*.faiss
+*.index
+chroma_db/
+qdrant_storage/

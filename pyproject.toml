@@ -1,0 +1,111 @@
+[build-system]
+# WHAT THIS IS: Tells Python how to build your project
+# WHY: Required for modern Python projects (PEP 518)
+# NOTE: uv uses this to build the package
+requires = ["setuptools>=68.0.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+# PROJECT METADATA
+name = "stock-research-assistant"
+version = "0.1.0"
+description = "AI-powered stock research assistant using RAG"
+readme = "README.md"
+requires-python = ">=3.9"
+
+# YOUR INFO (optional but good practice)
+authors = [
+    {name = "Your Name", email = "your.email@example.com"}
+]
+
+# DEPENDENCIES
+# WHY SEPARATE SECTIONS: Different dependency types for different purposes
+dependencies = [
+    # SEC data fetching
+    "requests>=2.31.0",
+
+    # Data manipulation (you already know these)
+    "pandas>=2.1.0",
+    "numpy>=1.24.3",
+
+    # HTML/XML parsing
+    "beautifulsoup4>=4.12.0",
+    "lxml>=5.0.0",  # Fast XML/HTML parser
+
+    # LangChain for RAG
+    "langchain>=0.1.0",
+    "langchain-openai>=0.0.5",
+    "langchain-text-splitters>=0.0.1",
+    "langchain-core>=0.1.0",
+
+    # OpenAI for embeddings
+    "openai>=1.12.0",
+    "tiktoken>=0.5.0",  # Token counting
+
+    # Vector database - Qdrant
+    "qdrant-client>=1.7.0",
+
+    # Environment variables
+    "python-dotenv>=1.0.0",
+
+    # FastAPI for backend
+    "fastapi>=0.109.0",
+    "uvicorn[standard]>=0.27.0",
+    "python-multipart>=0.0.6",  # For file uploads
+]
+
+[project.optional-dependencies]
+# WHY OPTIONAL: Not everyone needs all features
+# Install with: pip install -e ".[dev]" or ".[rag]"
+
+# Development tools (testing, formatting, etc.)
+dev = [
+    "pytest>=7.4.0",
+    "black>=23.7.0",           # Code formatter
+    "ruff>=0.0.285",           # Fast linter
+    "ipython>=8.14.0",         # Better REPL
+    "jupyter>=1.0.0",          # Notebooks
+]
+
+# RAG & Vector DB alternatives (optional)
+rag = [
+    "sentence-transformers>=2.2.0",  # For local embeddings (alternative to OpenAI)
+    "chromadb>=0.4.0",               # Alternative vector DB
+    "anthropic>=0.3.0",              # For Claude API (answer generation)
+]
+
+# PDF processing (for when we add PDF support)
+pdf = [
+    # "PyPDF2>=3.0.0",
+    # "pdfplumber>=0.9.0",
+]
+
+# Everything at once
+all = [
+    "stock-research-assistant[dev,rag,pdf]",
+]
+
+[tool.black]
+# CODE FORMATTER CONFIG
+# WHY: Consistent code style without thinking about it
+line-length = 88
+target-version = ['py39']
+
+[tool.ruff]
+# LINTER CONFIG  
+# WHY: Catch bugs and style issues automatically
+line-length = 88
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort (import sorting)
+]
+ignore = []
+
+[tool.pytest.ini_options]
+# TEST CONFIGURATION
+# WHY: Makes running tests consistent
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_functions = ["test_*"]
