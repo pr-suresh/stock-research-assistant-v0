@@ -42,3 +42,7 @@ Thumbs.db
 *.index
 chroma_db/
 qdrant_storage/
+
+# Learning materials (personal notes/examples)
+LEARNING_PLAN_PYDANTIC_FASTAPI.md
+learning_examples/

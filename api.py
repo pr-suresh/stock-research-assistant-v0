@@ -35,6 +35,7 @@ from embeddings import EmbeddingGenerator
 from vector_store import QdrantVectorStore
 from qa_engine import RAGQuestionAnswering
 from stock_tools import get_stock_price, get_cache_info, clear_stock_cache
+from stock_agent import StockResearchAgent
 
 # Load environment variables
 load_dotenv()
@@ -57,9 +58,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Initialize embeddings and QA engine (lazy - only when needed)
+# Initialize embeddings, QA engine, and agent (lazy - only when needed)
 _embedder = None
 _qa_engine = None
+_agent = None
 
 def get_embedder():
     """Get or create embeddings generator."""
@@ -111,6 +113,22 @@ def get_qa_engine():
                 detail=f"Failed to initialize Q&A engine: {str(e)}"
             )
     return _qa_engine
+
+
+def get_agent():
+    """Get or create Stock Research Agent."""
+    global _agent
+    if _agent is None:
+        try:
+            _agent = StockResearchAgent(
+                verbose=False  # Set to True for debugging
+            )
+        except Exception as e:
+            raise HTTPException(
+                status_code=500,
+                detail=f"Failed to initialize agent: {str(e)}"
+            )
+    return _agent
 
 
 # =============================================================================
@@ -313,6 +331,58 @@ class StockPriceResponse(BaseModel):
         }
 
 
+class AgentRequest(BaseModel):
+    """Request for agent query."""
+    question: str = Field(..., description="Question for the agent to answer")
+    max_iterations: int = Field(default=5, description="Maximum reasoning steps", ge=1, le=10)
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "question": "What is Apple's current stock price and how does it compare to their revenue from the last 10-K?",
+                "max_iterations": 5
+            }
+        }
+
+
+class ToolCall(BaseModel):
+    """Information about a tool call made by the agent."""
+    tool: str = Field(..., description="Name of the tool called")
+    arguments: Dict = Field(..., description="Arguments passed to the tool")
+    result: str = Field(..., description="Result returned by the tool")
+
+
+class AgentResponse(BaseModel):
+    """Response from agent query."""
+    answer: str = Field(..., description="Final answer from the agent")
+    tool_calls: List[ToolCall] = Field(..., description="List of tools used during reasoning")
+    metadata: Dict = Field(..., description="Execution metadata (iterations, model, etc.)")
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "answer": "Apple's current stock price is $268.47, down 0.48%. According to their latest 10-K filing, Apple reported total net sales of $391.0 billion for fiscal year 2024.",
+                "tool_calls": [
+                    {
+                        "tool": "get_stock_price",
+                        "arguments": {"ticker": "AAPL"},
+                        "result": "Stock Information for AAPL: Price: $268.47..."
+                    },
+                    {
+                        "tool": "search_sec_filings",
+                        "arguments": {"question": "What is Apple's revenue?", "ticker": "AAPL"},
+                        "result": "Apple's total net sales were $391.0 billion..."
+                    }
+                ],
+                "metadata": {
+                    "iterations": 2,
+                    "model": "gpt-4-turbo-preview",
+                    "total_tools_used": 2
+                }
+            }
+        }
+
+
 # =============================================================================
 # Endpoints
 # =============================================================================
@@ -326,7 +396,7 @@ async def health_check():
     """
     return {
         "status": "healthy",
-        "message": "RAG Pipeline API with Q&A and Live Stock Data is running",
+        "message": "RAG Pipeline API with Q&A, Live Stock Data, and AI Agent",
         "endpoints": {
             "docs": "/docs",
             "parse": "POST /parse",
@@ -334,7 +404,8 @@ async def health_check():
             "embed": "POST /embed",
             "pipeline": "POST /pipeline/full",
             "qa": "POST /qa - Answer questions about SEC filings",
-            "stock": "GET /stock/{ticker} - Get live stock prices"
+            "stock": "GET /stock/{ticker} - Get live stock prices",
+            "agent": "POST /agent/query - Multi-step AI agent with tools"
         }
     }
 
@@ -666,6 +737,77 @@ async def question_answering(request: QARequest):
         raise HTTPException(
             status_code=500,
             detail=f"Q&A error: {str(e)}"
+        )
+
+
+@app.post("/agent/query", response_model=AgentResponse, tags=["Agent"])
+async def agent_query(request: AgentRequest):
+    """
+    Multi-step AI agent that combines live stock data with SEC filing analysis.
+
+    **How it works:**
+    1. Agent receives your question
+    2. Intelligently decides which tools to use (stock price API, SEC filings search, or both)
+    3. Performs multi-step reasoning to answer complex questions
+    4. Returns answer with full transparency on tool usage
+
+    **Available Tools:**
+    - `get_stock_price` - Current stock price, volume, market cap from Yahoo Finance
+    - `search_sec_filings` - Historical data from SEC 10-K/10-Q filings via RAG
+    - `compare_stock_and_filings` - Hybrid analysis combining both sources
+
+    **Example Questions:**
+    - "What is Apple's current stock price and revenue from their last 10-K?"
+    - "Compare Microsoft and Apple's revenue growth"
+    - "Get Tesla's stock price and summarize their risk factors"
+    - "What's the relationship between AAPL's market cap and their reported assets?"
+
+    **Multi-step Reasoning:**
+    The agent can break down complex questions into steps:
+    1. First get current stock price
+    2. Then search SEC filings for revenue
+    3. Finally combine and analyze both
+
+    **Transparency:**
+    - See all tool calls made
+    - View arguments passed to each tool
+    - Inspect results from each step
+    - Track iterations and reasoning
+
+    **Cost:** ~$0.02-0.05 per query (depends on complexity and steps)
+
+    **Requirements:**
+    - OPENAI_API_KEY environment variable
+    - Qdrant database with SEC filing data (for filing searches)
+    """
+    try:
+        agent = get_agent()
+
+        # Execute the query with specified max iterations
+        result = agent.query(question=request.question)
+
+        # Convert tool_calls to Pydantic models
+        tool_calls = [
+            ToolCall(
+                tool=tc['tool'],
+                arguments=tc['arguments'],
+                result=tc['result'][:500] + "..." if len(tc.get('result', '')) > 500 else tc.get('result', '')
+            )
+            for tc in result['tool_calls']
+        ]
+
+        return AgentResponse(
+            answer=result['answer'],
+            tool_calls=tool_calls,
+            metadata=result['metadata']
+        )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Agent error: {str(e)}"
         )
 
 
