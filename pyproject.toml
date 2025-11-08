@@ -52,6 +52,9 @@ dependencies = [
     "fastapi>=0.109.0",
     "uvicorn[standard]>=0.27.0",
     "python-multipart>=0.0.6",  # For file uploads
+
+    # Live stock data
+    "yfinance>=0.2.36",  # Yahoo Finance API
 ]
 
 [project.optional-dependencies]

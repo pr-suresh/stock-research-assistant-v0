@@ -34,6 +34,7 @@ from text_chunker import TextChunker
 from embeddings import EmbeddingGenerator
 from vector_store import QdrantVectorStore
 from qa_engine import RAGQuestionAnswering
+from stock_tools import get_stock_price, get_cache_info, clear_stock_cache
 
 # Load environment variables
 load_dotenv()
@@ -278,6 +279,40 @@ class QAResponse(BaseModel):
         }
 
 
+class StockPriceResponse(BaseModel):
+    """Response from stock price lookup."""
+    ticker: str = Field(..., description="Stock ticker symbol")
+    price: Optional[float] = Field(None, description="Current/last stock price")
+    change: Optional[float] = Field(None, description="Price change amount")
+    change_percent: Optional[float] = Field(None, description="Percentage change")
+    volume: Optional[int] = Field(None, description="Trading volume")
+    market_cap: Optional[int] = Field(None, description="Market capitalization")
+    day_high: Optional[float] = Field(None, description="Today's high")
+    day_low: Optional[float] = Field(None, description="Today's low")
+    week_52_high: Optional[float] = Field(None, description="52-week high")
+    week_52_low: Optional[float] = Field(None, description="52-week low")
+    timestamp: str = Field(..., description="When data was fetched (ISO format)")
+    error: Optional[str] = Field(None, description="Error message if fetch failed")
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "ticker": "AAPL",
+                "price": 178.23,
+                "change": 2.45,
+                "change_percent": 1.39,
+                "volume": 52341876,
+                "market_cap": 2890000000000,
+                "day_high": 179.12,
+                "day_low": 176.45,
+                "week_52_high": 199.62,
+                "week_52_low": 164.08,
+                "timestamp": "2025-01-07T10:30:00",
+                "error": None
+            }
+        }
+
+
 # =============================================================================
 # Endpoints
 # =============================================================================
@@ -291,16 +326,62 @@ async def health_check():
     """
     return {
         "status": "healthy",
-        "message": "RAG Pipeline API with Q&A is running",
+        "message": "RAG Pipeline API with Q&A and Live Stock Data is running",
         "endpoints": {
             "docs": "/docs",
             "parse": "POST /parse",
             "chunk": "POST /chunk",
             "embed": "POST /embed",
             "pipeline": "POST /pipeline/full",
-            "qa": "POST /qa - Answer questions about SEC filings"
+            "qa": "POST /qa - Answer questions about SEC filings",
+            "stock": "GET /stock/{ticker} - Get live stock prices"
         }
     }
+
+
+@app.get("/stock/{ticker}", response_model=StockPriceResponse, tags=["Stock Data"])
+async def get_stock_data(ticker: str):
+    """
+    Get current stock price and key metrics for a ticker symbol.
+
+    **Data Source:** Yahoo Finance (free, no API key required)
+
+    **Caching:** Results are cached using LRU cache to reduce API calls
+
+    **What you get:**
+    - Current/last stock price
+    - Price change ($ and %)
+    - Trading volume
+    - Market capitalization
+    - Day high/low
+    - 52-week high/low
+
+    **Examples:**
+    - `/stock/AAPL` - Apple Inc.
+    - `/stock/MSFT` - Microsoft Corp.
+    - `/stock/TSLA` - Tesla Inc.
+
+    **Use cases:**
+    - Get current stock price before querying SEC filings
+    - Compare live market data with historical SEC data
+    - Monitor stock performance
+
+    **Performance:**
+    - First call: ~500ms (API fetch)
+    - Cached calls: <50ms
+
+    **Error handling:**
+    - Invalid ticker returns error message in response
+    - API failures are caught and reported
+    """
+    try:
+        result = get_stock_price(ticker)
+        return StockPriceResponse(**result)
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to fetch stock data: {str(e)}"
+        )
 
 
 @app.post("/parse", response_model=ParseResponse, tags=["Parse"])
