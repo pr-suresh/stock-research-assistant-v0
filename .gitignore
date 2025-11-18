@@ -46,3 +46,21 @@ qdrant_storage/
 # Learning materials (personal notes/examples)
 LEARNING_PLAN_PYDANTIC_FASTAPI.md
 learning_examples/
+
+# Backend specific
+backend/.venv/
+backend/__pycache__/
+backend/*.pyc
+backend/.pytest_cache/
+backend/data/
+
+# Frontend specific (Next.js)
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/.env.local
+frontend/.env.production.local
+frontend/.vercel/
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*

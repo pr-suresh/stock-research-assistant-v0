@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: stock-research-api
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn api:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: QDRANT_URL
+        sync: false
+      - key: QDRANT_API_KEY
+        sync: false
+      - key: OPENAI_MODEL
+        value: gpt-4-turbo-preview
+      - key: OPENAI_TEMPERATURE
+        value: "0.1"
+      - key: OPENAI_MAX_TOKENS
+        value: "1000"
+      - key: QA_TOP_K_DEFAULT
+        value: "5"
