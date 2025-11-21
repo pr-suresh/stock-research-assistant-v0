@@ -18,7 +18,7 @@ Endpoints:
 
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from typing import List, Dict, Optional
 from pathlib import Path
 import tempfile
@@ -161,16 +161,17 @@ class ChunkRequest(BaseModel):
     strategy: str = Field("recursive", description="Chunking strategy: recursive or character")
     metadata: Optional[Dict] = Field(None, description="Metadata to attach to chunks")
     
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "text": "Apple Inc. designs and manufactures consumer electronics...",
-                "chunk_size": 1000,
-                "chunk_overlap": 200,
-                "strategy": "recursive",
-                "metadata": {"source": "apple_10k.htm", "company": "Apple"}
-            }
+    model_config = ConfigDict(json_schema_extra={
+        "example": {
+            "text": "Apple Inc. designs and manufactures consumer electronics...",
+            "chunk_size": 1000,
+            "chunk_overlap": 200,
+            "strategy": "recursive",
+            "metadata": {"source": "apple_10k.htm", "company": "Apple"}
         }
+    })
+
+
 
 
 class ChunkResponse(BaseModel):
@@ -178,33 +179,28 @@ class ChunkResponse(BaseModel):
     chunks: List[Dict]
     stats: Dict
     
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "chunks": [
-                    {
-                        "content": "Apple Inc. designs...",
-                        "metadata": {"chunk_index": 0, "total_chunks": 5},
-                        "length": 987
-                    }
-                ],
-                "stats": {
-                    "num_chunks": 5,
-                    "avg_chunk_size": 950,
-                    "min_chunk_size": 800,
-                    "max_chunk_size": 1100
+    model_config = ConfigDict(json_schema_extra={
+        "example": {
+            "chunks": [
+                {
+                    "content": "Apple Inc. designs...",
+                    "metadata": {"chunk_index": 0, "total_chunks": 5},
+                    "length": 987
                 }
-            }
-        }
+            ],
+            "stats": {
+                "num_chunks": 5,
+                "avg_chunk_size": 950,
+                "min_chunk_size": 800,
+                "max_chunk_size": 1100
 
 
 class EmbedRequest(BaseModel):
     """Request to embed chunks."""
     chunks: List[Dict] = Field(..., description="Chunks to embed (from /chunk endpoint)")
     
-    class Config:
-        json_schema_extra = {
-            "example": {
+    model_config = ConfigDict(json_schema_extra={
+                "example": {
                 "chunks": [
                     {
                         "content": "Apple Inc. designs...",
@@ -212,7 +208,7 @@ class EmbedRequest(BaseModel):
                     }
                 ]
             }
-        }
+        })
 
 
 class EmbedResponse(BaseModel):
@@ -220,24 +216,23 @@ class EmbedResponse(BaseModel):
     embeddings: List[Dict]
     cost_info: Dict
 
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "embeddings": [
-                    {
-                        "content": "Apple Inc. designs...",
-                        "metadata": {"chunk_index": 0},
-                        "embedding": [0.023, -0.015, 0.042, "..."],
-                        "embedding_dim": 1536
-                    }
-                ],
-                "cost_info": {
-                    "num_documents": 5,
-                    "estimated_tokens": 1250,
-                    "estimated_cost_usd": 0.0001
+    model_config = ConfigDict(json_schema_extra={
+        "example": {
+            "embeddings": [
+                {
+                    "content": "Apple Inc. designs...",
+                    "metadata": {"chunk_index": 0},
+                    "embedding": [0.023, -0.015, 0.042, "..."],
+                    "embedding_dim": 1536
                 }
+            ],
+            "cost_info": {
+                "num_documents": 5,
+                "estimated_tokens": 1250,
+                "estimated_cost_usd": 0.0001
             }
         }
+    })
 
 
 class QARequest(BaseModel):
@@ -248,14 +243,13 @@ class QARequest(BaseModel):
     section: Optional[str] = Field(None, description="Filter by section name")
     top_k: int = Field(5, description="Number of chunks to retrieve", ge=1, le=20)
 
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "question": "What is Apple's revenue?",
-                "ticker": "AAPL",
-                "top_k": 5
-            }
+    model_config = ConfigDict(json_schema_extra={
+        "example": {
+            "question": "What is Apple's revenue?",
+            "ticker": "AAPL",
+            "top_k": 5
         }
+    })
 
 
 class Source(BaseModel):
@@ -271,7 +265,7 @@ class QAResponse(BaseModel):
     sources: List[Source] = Field(..., description="Source documents with metadata")
     metadata: Dict = Field(..., description="Processing metadata (tokens, cost, timing)")
 
-    class Config:
+    model_config = ConfigDict(json_schema_extra={
         json_schema_extra = {
             "example": {
                 "answer": "Apple Inc. reported total net sales of $391.0 billion for fiscal year 2024 [1].",
@@ -279,20 +273,6 @@ class QAResponse(BaseModel):
                     {
                         "id": 1,
                         "content": "Total net sales were $391.0 billion...",
-                        "metadata": {
-                            "ticker": "AAPL",
-                            "section": "Financial Highlights",
-                            "filing_type": "10-K",
-                            "score": 0.89
-                        }
-                    }
-                ],
-                "metadata": {
-                    "model": "gpt-4-turbo-preview",
-                    "total_tokens": 975,
-                    "estimated_cost_usd": 0.014,
-                    "total_time_ms": 1945
-                }
             }
         }
 
@@ -312,7 +292,7 @@ class StockPriceResponse(BaseModel):
     timestamp: str = Field(..., description="When data was fetched (ISO format)")
     error: Optional[str] = Field(None, description="Error message if fetch failed")
 
-    class Config:
+    model_config = ConfigDict(json_schema_extra={
         json_schema_extra = {
             "example": {
                 "ticker": "AAPL",
@@ -336,7 +316,7 @@ class AgentRequest(BaseModel):
     question: str = Field(..., description="Question for the agent to answer")
     max_iterations: int = Field(default=5, description="Maximum reasoning steps", ge=1, le=10)
 
-    class Config:
+    model_config = ConfigDict(json_schema_extra={
         json_schema_extra = {
             "example": {
                 "question": "What is Apple's current stock price and how does it compare to their revenue from the last 10-K?",
@@ -358,29 +338,28 @@ class AgentResponse(BaseModel):
     tool_calls: List[ToolCall] = Field(..., description="List of tools used during reasoning")
     metadata: Dict = Field(..., description="Execution metadata (iterations, model, etc.)")
 
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "answer": "Apple's current stock price is $268.47, down 0.48%. According to their latest 10-K filing, Apple reported total net sales of $391.0 billion for fiscal year 2024.",
-                "tool_calls": [
-                    {
-                        "tool": "get_stock_price",
-                        "arguments": {"ticker": "AAPL"},
-                        "result": "Stock Information for AAPL: Price: $268.47..."
-                    },
-                    {
-                        "tool": "search_sec_filings",
-                        "arguments": {"question": "What is Apple's revenue?", "ticker": "AAPL"},
-                        "result": "Apple's total net sales were $391.0 billion..."
-                    }
-                ],
-                "metadata": {
-                    "iterations": 2,
-                    "model": "gpt-4-turbo-preview",
-                    "total_tools_used": 2
+    model_config = ConfigDict(json_schema_extra={   
+        "example": {
+            "answer": "Apple's current stock price is $268.47, down 0.48%. According to their latest 10-K filing, Apple reported total net sales of $391.0 billion for fiscal year 2024.",
+            "tool_calls": [
+                {
+                    "tool": "get_stock_price",
+                    "arguments": {"ticker": "AAPL"},
+                    "result": "Stock Information for AAPL: Price: $268.47..."
+                },
+                {
+                    "tool": "search_sec_filings",
+                    "arguments": {"question": "What is Apple's revenue?", "ticker": "AAPL"},
+                    "result": "Apple's total net sales were $391.0 billion..."
                 }
+                ],
+            "metadata": {
+                "iterations": 2,
+                "model": "gpt-4-turbo-preview",
+                "total_tools_used": 2
             }
         }
+    })
 
 
 # =============================================================================
