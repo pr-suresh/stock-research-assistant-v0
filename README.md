@@ -6,7 +6,7 @@ AI-powered stock research tool combining live market data, SEC filings analysis,
 [![Next.js 16](https://img.shields.io/badge/Next.js-16-black.svg)](https://nextjs.org/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-**🔗 Live Demo:** [Coming Soon - Deploying to Vercel]
+**🔗 Live Demo:** https://stock-research-assistant-v0.vercel.app
 
 **📚 API Docs:** [https://stock-research-assistant-v0.onrender.com/docs](https://stock-research-assistant-v0.onrender.com/docs)
 
@@ -111,8 +111,8 @@ The agent intelligently decides which tools to use and combines multiple data so
 │   Frontend  │      │   Backend    │      │   GPT-4     │
 │  (Vercel)   │      │  (Render)    │      └─────────────┘
 └─────────────┘      └──────────────┘              │
-                            │                       │
-                            ▼                       ▼
+                            │                      │
+                            ▼                      ▼
                      ┌──────────────┐      ┌─────────────┐
                      │ Yahoo Finance│      │   Qdrant    │
                      │  (Live Data) │      │  (Vectors)  │
@@ -166,7 +166,6 @@ The FastAPI backend provides the following endpoints:
 <summary><h2>📖 Additional Documentation</h2></summary>
 
 ### Backend Setup & Development
-- **[backend/DEPLOY.md](backend/DEPLOY.md)** - Render deployment guide
 - **[docs/SETUP.md](docs/SETUP.md)** - Local installation guide
 - **[docs/REQUIREMENTS.md](docs/REQUIREMENTS.md)** - Implementation details
 
@@ -232,7 +231,6 @@ stock-research-assistant-v0/
 
 ---
 
-<details>
 <summary><h2>🔧 Configuration</h2></summary>
 
 ### Environment Variables
@@ -263,38 +261,6 @@ Both frontend and backend are configured for automatic deployment:
 - **Frontend**: Vercel auto-deploys on push to `main` branch
 - **Backend**: Render auto-deploys on push to `main` branch
 
-See [backend/DEPLOY.md](backend/DEPLOY.md) for deployment details.
-
-</details>
-
----
-
-<details>
-<summary><h2>💰 Cost Breakdown</h2></summary>
-
-### OpenAI Embeddings
-- Model: `text-embedding-3-small`
-- Cost: $0.02 per 1M tokens
-- **~$0.001 per 10-K filing**
-
-### GPT-4 Q&A
-- Model: `gpt-4-turbo-preview`
-- Cost: ~$0.01-0.03 per query
-- **~$0.015 average per query**
-
-### Qdrant Cloud
-- **Free tier:** 1GB storage (≈10,000 filings)
-- Paid plans from $25/month
-
-### Example Costs
-
-| Scale | Filings | Embedding Cost | Monthly Queries | Q&A Cost | Total |
-|-------|---------|----------------|-----------------|----------|-------|
-| Small | 100 | $0.10 | 100 | $1.50 | ~$2 |
-| Medium | 1,000 | $1.00 | 500 | $7.50 | ~$9 |
-| Large | 10,000 | $10.00 | 5,000 | $75.00 | ~$85 |
-
-</details>
 
 ---
 
