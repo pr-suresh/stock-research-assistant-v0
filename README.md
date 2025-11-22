@@ -1,180 +1,190 @@
 # Stock Research Assistant
 
-AI-powered Retrieval-Augmented Generation (RAG) system for analyzing SEC filings and answering questions about public company financial data.
+AI-powered stock research tool combining live market data, SEC filings analysis, and multi-step reasoning to answer complex financial questions.
 
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
+[![Next.js 16](https://img.shields.io/badge/Next.js-16-black.svg)](https://nextjs.org/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+
+**🔗 Live Demo:** [Coming Soon - Deploying to Vercel]
+
+**📚 API Docs:** [https://stock-research-assistant-v0.onrender.com/docs](https://stock-research-assistant-v0.onrender.com/docs)
+
+---
+
+## ✨ Features
+
+- **🤖 AI Agent:** Multi-step reasoning with GPT-4 for complex queries
+- **📈 Live Stock Data:** Real-time prices, volume, and market cap via Yahoo Finance
+- **📄 SEC Filings:** RAG-powered analysis of 10-K documents
+- **💬 Chat Interface:** Clean Next.js UI with message history and tool visibility
+- **🔧 REST API:** FastAPI backend with 8+ endpoints
 
 ---
 
 ## 🚀 Quick Start
 
+### Option 1: Use the Live Demo (Recommended)
+
+Visit the deployed application at: [Demo URL will appear here after Vercel deployment]
+
+### Option 2: Run Locally
+
+**Backend:**
 ```bash
 # 1. Clone and setup
 git clone <repo-url>
-cd stock-research-assistant-v0
+cd stock-research-assistant-v0/backend
 
 # 2. Create virtual environment
 python3 -m venv .venv
 source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 
 # 3. Install dependencies
-pip install -e .
+pip install -r requirements.txt
 
 # 4. Configure environment
-cp .env.example .env
-# Edit .env and add your OPENAI_API_KEY
+cp ../.env.example .env
+# Edit .env and add your API keys (OPENAI_API_KEY, QDRANT_URL, QDRANT_API_KEY)
 
-# 5. Run the pipeline
-python examples/pipeline_demo.py
-
-# 6. Query the database
-python examples/query_demo.py -i
-```
-
----
-
-## 📋 What It Does
-
-1. **Parse SEC Filings** - Extract clean text from HTML/XBRL documents
-2. **Intelligent Chunking** - Break documents into semantic chunks with metadata
-3. **Generate Embeddings** - Convert text to vectors using OpenAI
-4. **Vector Storage** - Store in Qdrant (local or cloud)
-5. **Semantic Search** - Ask questions in natural language, get relevant answers
-
----
-
-## 💡 Features
-
-### ✅ Implemented (MVP)
-- SEC HTML/XBRL parsing
-- Intelligent text chunking with metadata
-- OpenAI embedding generation
-- Qdrant vector storage (local & cloud)
-- Semantic search with filtering
-- Interactive query CLI
-- GPT-4 Q&A with source citations
-- REST API with FastAPI
-- Cloud upload utilities
-- Comprehensive documentation
-
-### 🔮 Planned
-- Web UI (React/Streamlit)
-- Multi-turn conversations
-- Automated SEC filing ingestion
-- Financial metrics extraction
-- Multi-filing comparative analysis
-
----
-
-## 📖 Documentation
-
-- **[SETUP.md](docs/SETUP.md)** - Installation and setup guide
-- **[REQUIREMENTS.md](docs/REQUIREMENTS.md)** - Comprehensive requirements & implementation details
-- **[QDRANT_QUICKSTART.md](docs/QDRANT_QUICKSTART.md)** - Quick Qdrant reference
-- **[QDRANT_SETUP.md](docs/QDRANT_SETUP.md)** - Detailed Qdrant configuration
-- **[DEPENDENCY_MANAGEMENT.md](docs/DEPENDENCY_MANAGEMENT.md)** - Guide to pyproject.toml
-- **[QA_IMPLEMENTATION_SUMMARY.md](docs/QA_IMPLEMENTATION_SUMMARY.md)** - Q&A system implementation guide
-
----
-
-<details>
-<summary><h2>🏗️ Architecture</h2></summary>
-
-```
-SEC Filing (HTML) → Parser → Chunker → Embeddings → Qdrant → Query Interface
-```
-
-### Core Components
-
-| Module | Purpose |
-|--------|---------|
-| `sec_parser.py` | Parse and clean SEC HTML/XBRL filings |
-| `text_chunker.py` | Split text into chunks with metadata |
-| `embeddings.py` | Generate OpenAI embeddings |
-| `vector_store.py` | Qdrant database interface |
-| `qa_engine.py` | RAG question answering |
-
-</details>
-
----
-
-<details>
-<summary><h2>📊 Example Usage</h2></summary>
-
-### Process a Filing
-
-```bash
-python examples/pipeline_demo.py
-```
-
-**Output:**
-- Parsed: 500,000 characters
-- Chunks: 117 documents
-- Embeddings: 117 vectors (1536-dim)
-- Cost: ~$0.001
-- Time: ~30-60 seconds
-
-### Query the Database
-
-```bash
-# Interactive mode
-python examples/query_demo.py -i
-
-# Direct query
-python examples/query_demo.py "What is Apple's revenue?"
-
-# Example output:
-# 1. [Score: 0.85] Apple Inc. reported total revenue of $391.0 billion...
-# 2. [Score: 0.82] iPhone revenue was $201.2 billion, representing 52%...
-```
-
-### Search with Filters
-
-```python
-from src.vector_store import QdrantVectorStore
-from src.embeddings import EmbeddingGenerator
-
-# Initialize
-store = QdrantVectorStore()
-embedder = EmbeddingGenerator()
-
-# Search
-query = "What are the risk factors?"
-query_vector = embedder.embed_query(query)
-
-results = store.search(
-    query_vector,
-    filter={"ticker": "AAPL", "section": "Risk Factors"},
-    limit=5
-)
-```
-
-### Q&A with GPT-4
-
-```bash
-# Run Q&A demo
-python examples/qa_api_demo.py
-
-# Or use the API
+# 5. Start the API server
 uvicorn api:app --reload --port 8000
-# Visit http://localhost:8000/docs
+# Visit http://localhost:8000/docs for API documentation
 ```
 
-</details>
+**Frontend:**
+```bash
+# 1. Navigate to frontend
+cd frontend
+
+# 2. Install dependencies
+npm install
+
+# 3. Configure environment
+cp .env.example .env.local
+# Edit .env.local and set NEXT_PUBLIC_BACKEND_URL=http://localhost:8000
+
+# 4. Start development server
+npm run dev
+# Visit http://localhost:3000
+```
+
+---
+
+## 📋 How It Works
+
+1. **AI Agent Reasoning** - Breaks down complex questions into actionable steps
+2. **Live Stock Data** - Fetches real-time prices using Yahoo Finance API
+3. **SEC Filings Search** - Retrieves relevant context from vector database (Qdrant)
+4. **RAG Analysis** - Combines retrieved documents with GPT-4 for accurate answers
+5. **Multi-Step Execution** - Orchestrates multiple tool calls to answer complex queries
+
+### Example: "What is Tesla's stock price and summarize their risk factors?"
+
+1. Agent calls `get_stock_price("TSLA")` → $395.23
+2. Agent calls `search_sec_filings("Tesla risk factors")` → Retrieves relevant chunks
+3. GPT-4 synthesizes both results into comprehensive answer
+
+---
+
+## 🎯 Example Queries
+
+Try asking the AI agent:
+
+```
+"What is Apple's current stock price?"
+"What is Tesla's revenue from their latest SEC filing?"
+"Compare Microsoft and Apple's market cap"
+"What are the main risk factors for NVDA?"
+"Tell me about Amazon's business segments and current stock price"
+```
+
+The agent intelligently decides which tools to use and combines multiple data sources to answer your question.
+
+---
+
+## 🏗️ Architecture
+
+```
+┌─────────────┐      ┌──────────────┐      ┌─────────────┐
+│   Next.js   │─────▶│   FastAPI    │─────▶│   OpenAI    │
+│   Frontend  │      │   Backend    │      │   GPT-4     │
+│  (Vercel)   │      │  (Render)    │      └─────────────┘
+└─────────────┘      └──────────────┘              │
+                            │                       │
+                            ▼                       ▼
+                     ┌──────────────┐      ┌─────────────┐
+                     │ Yahoo Finance│      │   Qdrant    │
+                     │  (Live Data) │      │  (Vectors)  │
+                     └──────────────┘      └─────────────┘
+```
+
+### Tech Stack
+
+**Frontend:**
+- Next.js 16 (React framework)
+- TypeScript
+- Tailwind CSS
+- Vercel AI SDK
+
+**Backend:**
+- FastAPI (Python web framework)
+- LangChain (AI agent orchestration)
+- yfinance (Stock data)
+- Qdrant (Vector database)
+
+**AI/ML:**
+- OpenAI GPT-4 Turbo (LLM)
+- OpenAI text-embedding-3-small (Embeddings)
+
+**Deployment:**
+- Frontend: Vercel
+- Backend: Render
+- Database: Qdrant Cloud
+
+---
+
+## 📊 API Endpoints
+
+The FastAPI backend provides the following endpoints:
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/health` | GET | Health check |
+| `/stock/{ticker}` | GET | Get live stock price |
+| `/search` | POST | Search SEC filings |
+| `/qa` | POST | Ask questions about filings |
+| `/agent/query` | POST | AI agent with multi-step reasoning |
+| `/collections` | GET | List available collections |
+| `/collections/{name}` | GET | Get collection details |
+
+**Interactive API Docs:** [https://stock-research-assistant-v0.onrender.com/docs](https://stock-research-assistant-v0.onrender.com/docs)
 
 ---
 
 <details>
-<summary><h2>🛠️ Tech Stack</h2></summary>
+<summary><h2>📖 Additional Documentation</h2></summary>
 
-- **Language:** Python 3.9+
-- **Parsing:** BeautifulSoup4, lxml
-- **RAG Framework:** LangChain
-- **Embeddings:** OpenAI API (text-embedding-3-small)
-- **LLM:** OpenAI GPT-4 Turbo
-- **Vector DB:** Qdrant
-- **Web Framework:** FastAPI
+### Backend Setup & Development
+- **[backend/DEPLOY.md](backend/DEPLOY.md)** - Render deployment guide
+- **[docs/SETUP.md](docs/SETUP.md)** - Local installation guide
+- **[docs/REQUIREMENTS.md](docs/REQUIREMENTS.md)** - Implementation details
+
+### Data Pipeline
+- **[docs/QDRANT_QUICKSTART.md](docs/QDRANT_QUICKSTART.md)** - Vector database quickstart
+- **[docs/QA_IMPLEMENTATION_SUMMARY.md](docs/QA_IMPLEMENTATION_SUMMARY.md)** - RAG implementation
+
+### Example Scripts
+```bash
+# Process SEC filings
+python backend/examples/pipeline_demo.py
+
+# Test vector search
+python backend/examples/query_demo.py -i
+
+# Test Q&A system
+python backend/examples/qa_api_demo.py
+```
 
 </details>
 
@@ -185,35 +195,37 @@ uvicorn api:app --reload --port 8000
 
 ```
 stock-research-assistant-v0/
-├── src/                       # Core modules
-│   ├── sec_parser.py         # SEC filing parser
-│   ├── text_chunker.py       # Text chunking
-│   ├── embeddings.py         # OpenAI embeddings
-│   ├── vector_store.py       # Qdrant interface
-│   ├── qa_engine.py          # Q&A RAG engine
-│   └── prompts.py            # LLM prompts
-├── examples/                  # Demo scripts & utilities
-│   ├── pipeline_demo.py      # End-to-end pipeline
-│   ├── query_demo.py         # Query interface
-│   ├── qa_api_demo.py        # Q&A CLI demo
-│   ├── upload_to_qdrant_cloud.py  # Cloud upload
-│   └── add_qdrant_indexes.py      # Index management
-├── tests/                     # Test scripts
-│   ├── test_parser.py
-│   ├── test_api.py
-│   └── test_qa_quick.py
+├── frontend/                  # Next.js application
+│   ├── app/
+│   │   ├── api/chat/         # Chat API proxy
+│   │   ├── page.tsx          # Main page
+│   │   └── layout.tsx        # App layout
+│   ├── components/
+│   │   └── ChatInterface.tsx # Chat UI component
+│   ├── package.json
+│   └── .env.local            # Frontend config
+│
+├── backend/                   # FastAPI application
+│   ├── src/                  # Core modules
+│   │   ├── sec_parser.py    # SEC filing parser
+│   │   ├── text_chunker.py  # Text chunking
+│   │   ├── embeddings.py    # OpenAI embeddings
+│   │   ├── vector_store.py  # Qdrant interface
+│   │   ├── qa_engine.py     # Q&A RAG engine
+│   │   ├── agent.py         # LangChain AI agent
+│   │   └── prompts.py       # LLM prompts
+│   ├── examples/             # Demo scripts
+│   │   ├── pipeline_demo.py
+│   │   ├── query_demo.py
+│   │   └── qa_api_demo.py
+│   ├── tests/                # Test scripts
+│   ├── api.py                # FastAPI server
+│   ├── requirements.txt      # Python dependencies
+│   └── render.yaml           # Render deployment config
+│
 ├── docs/                      # Documentation
-│   ├── SETUP.md
-│   ├── REQUIREMENTS.md
-│   ├── QDRANT_QUICKSTART.md
-│   └── QA_IMPLEMENTATION_SUMMARY.md
-├── data/
-│   ├── filings/              # Raw SEC HTML files
-│   └── processed/            # Processed chunks & embeddings
-├── api.py                     # FastAPI server
-├── pyproject.toml            # Dependencies
 ├── .env.example              # Environment template
-└── LICENSE                    # MIT License
+└── README.md                 # This file
 ```
 
 </details>
@@ -225,27 +237,33 @@ stock-research-assistant-v0/
 
 ### Environment Variables
 
+**Backend (.env):**
 ```bash
-# Required: OpenAI API key
+# Required
 OPENAI_API_KEY=sk-...
-
-# Optional: Qdrant Cloud
 QDRANT_URL=https://your-cluster.cloud.qdrant.io
 QDRANT_API_KEY=your-api-key
 
-# Optional: Q&A Configuration
+# Optional
 OPENAI_MODEL=gpt-4-turbo-preview
 OPENAI_TEMPERATURE=0.1
 OPENAI_MAX_TOKENS=1000
 ```
 
-### Deployment Options
+**Frontend (.env.local):**
+```bash
+# Backend API URL
+NEXT_PUBLIC_BACKEND_URL=https://stock-research-assistant-v0.onrender.com
+# For local development: http://localhost:8000
+```
 
-| Mode | Setup | Use Case |
-|------|-------|----------|
-| **Local Storage** | None | Development, testing |
-| **Qdrant Cloud** | Sign up at cloud.qdrant.io | Production, collaboration |
-| **Local Server** | Docker | Development with API |
+### Deployment Configuration
+
+Both frontend and backend are configured for automatic deployment:
+- **Frontend**: Vercel auto-deploys on push to `main` branch
+- **Backend**: Render auto-deploys on push to `main` branch
+
+See [backend/DEPLOY.md](backend/DEPLOY.md) for deployment details.
 
 </details>
 
@@ -283,22 +301,34 @@ OPENAI_MAX_TOKENS=1000
 <details>
 <summary><h2>🎯 Use Cases</h2></summary>
 
-- **Financial Analysts:** Quick insights from SEC filings
-- **Investors:** Research multiple companies efficiently
-- **Compliance Teams:** Track regulatory changes
-- **Researchers:** Analyze filing trends over time
-- **Developers:** Build financial data applications
+Perfect for:
+- **Individual Investors:** Quick research before making investment decisions
+- **Financial Analysts:** Rapid insights combining live data and historical filings
+- **Students:** Learning about companies and financial analysis
+- **Researchers:** Exploring SEC filing data with AI assistance
+- **Developers:** Reference implementation for AI-powered financial tools
 
-### Example Queries
+### What You Can Ask
 
+**Live Market Data:**
 ```
-"What is Apple's revenue?"
-"Tell me about iPhone sales"
-"What are the main risk factors?"
-"How much does the company spend on R&D?"
-"What are the key products and services?"
-"Describe the competitive landscape"
-"What segments does the company operate in?"
+"What is Tesla's current stock price?"
+"Show me AAPL's market cap and trading volume"
+"What's the 52-week range for Microsoft?"
+```
+
+**SEC Filings Analysis:**
+```
+"What is Apple's revenue from their 10-K?"
+"Tell me about Tesla's risk factors"
+"What are Amazon's main business segments?"
+"Describe NVIDIA's competitive landscape"
+```
+
+**Combined Queries:**
+```
+"What is Tesla's stock price and summarize their key risks?"
+"Compare Apple and Microsoft's market cap, then tell me about Apple's revenue"
 ```
 
 </details>
@@ -308,29 +338,25 @@ OPENAI_MAX_TOKENS=1000
 <details>
 <summary><h2>🚧 Roadmap</h2></summary>
 
-### Phase 1: MVP (✅ Complete)
-- [x] SEC parsing & chunking
-- [x] Embedding generation
-- [x] Vector storage
-- [x] Basic search interface
+### ✅ Completed
+- [x] SEC parsing & RAG pipeline
+- [x] Vector storage (Qdrant Cloud)
+- [x] Live stock data integration
+- [x] AI agent with multi-step reasoning
+- [x] REST API (FastAPI)
+- [x] Next.js frontend with chat UI
+- [x] Backend deployment (Render)
+- [x] Frontend deployment (Vercel)
 
-### Phase 2: Enhanced Query (✅ Complete)
-- [x] LLM answer generation
-- [x] Source citations
-- [x] REST API
-- [ ] Multi-turn conversations
-- [ ] Query refinement
-
-### Phase 3: Web Interface
-- [ ] React/Streamlit UI
+### 🔮 Future Enhancements
+- [ ] Rate limiting for API protection
 - [ ] User authentication
-- [ ] Visualization
-
-### Phase 4: Scale
-- [ ] Automated filing ingestion
-- [ ] Multi-filing support
-- [ ] Financial metrics extraction
-- [ ] Trend analysis
+- [ ] Multi-turn conversation history
+- [ ] Automated SEC filing ingestion
+- [ ] Multi-company comparative analysis
+- [ ] Financial metrics extraction & visualization
+- [ ] Export reports (PDF/CSV)
+- [ ] Custom watchlists
 
 </details>
 
@@ -381,4 +407,4 @@ For issues, questions, or suggestions:
 
 ---
 
-**Version:** 0.1.0 | **Status:** MVP Complete ✅ | **Last Updated:** November 1, 2025
+**Version:** 1.0.0 | **Status:** Production ✅ | **Last Updated:** November 22, 2025
